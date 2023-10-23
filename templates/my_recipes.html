@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %} Recipes {% endblock %}
+
+{% block content %}
+<h1 class="display-1">My Recipes</h1>
+<p class="lead">Add Your Recipes</p>
+
+<form method="POST">
+    
+    {{ form.hidden_tag() }}
+
+    {% for field in form
+        if field.widget.input_type != 'hidden' %}
+    <p>
+        {{ field.label }}
+        {{ field(class_='form-control') }}
+
+        {% for error in field.errors %}
+        {{ error }}
+        {% endfor %}
+    </p>
+    {% endfor %}
+
+    <button class="btn btn-success" type="submit">Post</button>
+
+</form>
+
+<ul>
+    {% for recipe in recipes %}
+    <li>
+        <b>{{recipe.recipe_name}} </b> by <b> {{recipe.user.username}}</b>: {{recipe.text}}
+        <form style="display: inline;" method="POST" action="{{ url_for('toggle_favorite', id=recipe.id) }}">
+            {% if recipe.is_favorite %}
+                <button type="submit" class="btn btn-warning" name="action" value="remove_favorite">Remove from Favorites</button>
+            {% else %}
+                <button type="submit" class="btn btn-primary" name="action" value="add_favorite">Add to Favorites</button>
+            {% endif %}
+        </form>
+        {% if session['user_id'] == recipe.user_id %}
+        <form style="display: inline;" action="/my_recipes/{{recipe.id}}"  method='POST'>
+            <button class="btn btn-sm btn-danger">Remove</button>
+        </form>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

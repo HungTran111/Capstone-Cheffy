@@ -1,0 +1,85 @@
+<html>
+    
+<head>
+    <title>Recipe Finder</title>
+    <link rel="stylesheet" href="https://bootswatch.com/4/flatly/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 40px;
+            background-color: rgb(223, 253, 250);
+        }
+        #recipe-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .recipe-card {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 15px;
+            width: 300px;
+        }
+        .recipe-card img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        nav {
+            margin-bottom: 20px;
+            border-radius: 20px;
+        }
+        nav a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        
+    </style>
+</head>
+
+<body>
+    <nav class="navbar float-top navbar-light bg-primary justify-content-between ">
+        <div class="container">
+        
+            <a href="/" class="navbar-brand text-light">Recipe Finder</a>
+            <form action="/search" method="post">
+                <input type="text" name="searchInput" placeholder="Search for recipes" required>
+                <button type="submit">Search</button>
+            </form class="form-control">
+            <ul class="nav navbar-nav flex-row float-right">
+                {% if session['user_id'] %}
+                <li class="nav-item">
+                    <a class="nav-link pr-3 text-light" href="/my_recipes">My Recipes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link pr-3 text-light" href="/logout">logout</a>
+                </li>
+
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link pr-3 text-light" href="/login">login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="/register">Sign Up</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 2em;">
+        {% for msg in get_flashed_messages() %}
+        <div class="alert alert-success">{{msg}}</div>
+        {% endfor %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+
+</html>

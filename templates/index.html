@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %} Recipes {% endblock %}
+
+{% block content %}
+<div id="recipe-container">
+    {% for recipe in recipes %}
+        <div class="recipe-card">
+            <h3>{{ recipe.recipe.label }}</h3>
+            <img src="{{ recipe.recipe.image }}" alt="{{ recipe.recipe.label }}">
+            <p>Calories: {{ recipe.calories | int }}</p>
+            <p>Number of Ingredients: {{ recipe.recipe.ingredients | length }}</p>
+            <ul>
+                {% for ingredient in recipe.recipe.ingredients %}
+                    <li>{{ ingredient.text }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
