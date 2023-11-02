@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session, flash, url_for
 from models import connect_db, db, User, My_Recipes
 from forms import UserForm, RecipesForm
+from flask_uploads import UploadSet, IMAGES, configure_uploads
+
 import requests
 
 app = Flask(__name__)
@@ -14,15 +16,20 @@ connect_db(app)
 with app.app_context():
     db.create_all()
 
+photos = UploadSet('photos', IMAGES)
+app.config['UPLOADED_PHOTOS_DEST'] = 'static/uploads'
+configure_uploads(app, photos)
 
 
 ########## ROUTES #########
 
-
+## HOME PAGE ##
 @app.route('/')
 def home_page():
-    return render_template('index.html')
+    return render_template('homepage.html')
 
+
+## CREATE RECIPES ##
 @app.route('/my_recipes', methods=['GET', 'POST'])
 def show_recipes():
     if 'user_id' not in session:
@@ -31,19 +38,32 @@ def show_recipes():
     
     form = RecipesForm()
     all_recipes = My_Recipes.query.all()
+
     if form.validate_on_submit():
         text = form.text.data
         recipe_name = form.recipe_name.data
-        new_recipe = My_Recipes(text=text, recipe_name=recipe_name, user_id=session['user_id'])
+        if 'image' in request.files:
+            image = request.files['image']
+
+            # Save the uploaded file
+            if image:
+                image_path = 'uploads/' + image.filename
+                image.save('static/' + image_path)
+            else:
+                image_path = None
+        else:
+           image_path = None
+        new_recipe = My_Recipes(text=text, recipe_name=recipe_name, image=image_path, user_id=session['user_id'])
         db.session.add(new_recipe)
         db.session.commit()
         flash('Recipe Created')
         return redirect('/my_recipes')
-    
+        
     if request.method == 'POST':
         recipe_id = request.form.get('id')
         action = request.form.get('action')
-
+        
+        ## REMOVE ##
         if action == 'remove_favorite':
             recipe = My_Recipes.query.get_or_404(recipe_id)
             if recipe.user_id == session['user_id']:
@@ -52,7 +72,7 @@ def show_recipes():
                 flash('Removed from favorites!')
             else:
                 flash('You Dont Have The Permission To Do That.')
-
+        ## ADD FAVORITE ##
         elif action == 'add_favorite':
             recipe = My_Recipes.query.get_or_404(recipe_id)
             if recipe.user_id == session['user_id']:
@@ -65,6 +85,7 @@ def show_recipes():
     return render_template('my_recipes.html', form=form, recipes=all_recipes)
 
 
+## TOGGLE FOR FAVORITE ##
 @app.route('/my_recipes/<int:id>/toggle_favorite', methods=['POST'])
 def toggle_favorite(id):
     if 'user_id' not in session:
@@ -83,24 +104,16 @@ def toggle_favorite(id):
     return redirect('/my_recipes')
 
 
-# @app.route('/bookmark/<recipe_uri>', methods=['POST'])
-# def bookmark(recipe_uri):
-#     if 'user_id' not in session:
-#         flash('Please Log In First!')
-#         return redirect(url_for('login'))
+# BOOKMARK ##
+@app.route('/bookmarks')
+def bookmark():
+    if 'user_id' not in session:
+        flash('Please Log In First!')
+        return redirect('/login')
+    favorite_recipes = My_Recipes.query.filter_by(is_favorite=True, user_id=session['user_id']).all()
+    return render_template('bookmarks.html', recipes=favorite_recipes)
 
-#     user_id = session['user_id']
-
-#     # Check if the recipe is not already bookmarked
-#     if not Bookmark.query.filter_by(recipe_uri=recipe_uri, user_id=user_id).first():
-#         bookmark = Bookmark(recipe_uri=recipe_uri, user_id=user_id)
-#         db.session.add(bookmark)
-#         db.session.commit()
-
-#     flash('Recipe bookmarked!')
-#     return redirect(url_for('index'))
-
-
+## DELETE RECIPE ##
 @app.route('/my_recipes/<int:id>', methods=['POST'])
 def delete_recipe(id):
     '''Delete Recipe'''
@@ -114,7 +127,8 @@ def delete_recipe(id):
     return redirect('/my_recipes')
 
 
-@app.route('/search', methods=['POST'])
+## SEARCH RECIPE WITH API ##
+@app.route('/search', methods=['GET', 'POST'])
 def search():
     search_value = request.form.get('searchInput')
 
@@ -136,6 +150,7 @@ def search():
         return render_template('index.html', error=f'Error fetching recipes: {str(e)}')
 
 
+## REGISTER ##
 @app.route('/register', methods=['GET', 'POST'])
 def register_user():
     form = UserForm()
@@ -154,6 +169,7 @@ def register_user():
     return render_template('register.html', form=form)
 
 
+## LOGIN ##
 @app.route('/login', methods=['GET', 'POST'])
 def login_user():
     form = UserForm()
@@ -173,10 +189,10 @@ def login_user():
     return render_template('login.html', form=form)
 
 
+## LOGOUT ##
 @app.route('/logout')
 def logout_user():
     session.pop('user_id')
-    flash('See You Soon!')
     return redirect('/')
 
 

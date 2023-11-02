@@ -2,13 +2,24 @@
 {% block title %} Recipes {% endblock %}
 
 {% block content %}
+
+<form action="/search" method="post" class="search-form ">
+    <input type="search" class="" name="searchInput" placeholder="Search for recipes" required>
+    <button type="submit" class="btn-outline-primary">Search</button>
+</form>
+
+
 <div id="recipe-container">
     {% for recipe in recipes %}
-        <div class="recipe-card">
+        <div class="recipe-card rounded">
             <h3>{{ recipe.recipe.label }}</h3>
+            <hr/>
             <img src="{{ recipe.recipe.image }}" alt="{{ recipe.recipe.label }}">
+            <hr/>
             <p>Calories: {{ recipe.calories | int }}</p>
+            <hr/>
             <p>Number of Ingredients: {{ recipe.recipe.ingredients | length }}</p>
+            <hr/>
             <ul>
                 {% for ingredient in recipe.recipe.ingredients %}
                     <li>{{ ingredient.text }}</li>
@@ -17,4 +28,6 @@
         </div>
     {% endfor %}
 </div>
+
+
 {% endblock %}

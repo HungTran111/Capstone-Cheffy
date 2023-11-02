@@ -1,9 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
-
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+
 
 def connect_db(app):
     '''Connect to database'''
@@ -17,9 +17,11 @@ class My_Recipes(db.Model):
     text = db.Column(db.Text, nullable=False)
     recipe_name = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    is_favorite = db.Column(db.Boolean, default=False)    
-
+    is_favorite = db.Column(db.Boolean, default=False)  
+    image = db.Column(db.String(255))
+ 
     user = db.relationship('User', backref='recipes')
+
 
 
 class User(db.Model):
@@ -27,9 +29,6 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.Text, nullable=False, unique=True)
     password = db.Column(db.Text, nullable=False)
-
-    # bookmarks = db.relationship('Bookmark', backref='users', lazy=True)
-
     
     @classmethod
     def register(cls, username, pwd):
@@ -51,10 +50,3 @@ class User(db.Model):
             return u
         else:
             return False
-        
-# class Bookmark(db.Model):
-#     __tablename__ = 'bookmarks'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     recipe_uri = db.Column(db.String(255), nullable=False)
-#     user_id = db.Column(db.Integer, nullable=False)

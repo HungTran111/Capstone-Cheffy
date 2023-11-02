@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %} Recipes {% endblock %}
+
+{% block content %}
+
+<div class="my-recipes-container">
+    {% if recipes %}
+    {% for recipe in recipes %}
+    <div class="my-recipes-card">
+        {% if recipe.image %}
+        <img src="{{ url_for('static', filename=recipe.image) }}" alt="{{ recipe.name }} Photo" style="max-width: 250px;">
+        {% else %}
+        <div>No Image</div>
+        {% endif %}
+        <hr>
+        <h3>{{ recipe.recipe_name }}</h3>
+        <hr>
+        <p>Ingredients: {{ recipe.text }}</p>
+    </div>
+    {% endfor %}
+    
+    {% else %}
+        <h2>No bookmarks yet.</h2>
+    {% endif %}
+</div>
+
+
+<a class="back-to-my-recipes" href="{{ url_for('show_recipes') }}">Back to My Recipes</a>
+
+
+{% endblock %}
